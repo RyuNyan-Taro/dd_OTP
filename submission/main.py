@@ -6,9 +6,7 @@ from pathlib import Path
 from loguru import logger
 import torch
 from tqdm import tqdm
-
-from lib.ipa import text_to_ipa
-from lib.parakeet import ParakeetModel
+from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 
 
 BATCH_SIZE = 4
@@ -34,9 +32,12 @@ def main():
 
     # Load model
     src_root = Path(__file__).parent.resolve()
-    model_path = src_root / "parakeet-tdt-0.6b-v2" / "parakeet-tdt-0.6b-v2.nemo"
-    logger.info(f"Loading model from: {model_path}")
-    model = ParakeetModel.load(model_path)
+
+    output_dir = "./final_model_ipa"
+
+    # load model and processer
+    loaded_processor = Wav2Vec2Processor.from_pretrained(output_dir)
+    loaded_model = Wav2Vec2ForCTC.from_pretrained(output_dir)
 
     # Load manifest and process data
     data_dir = Path("data")
@@ -54,26 +55,18 @@ def main():
 
     # Predict
     predictions = {}
-    next_log = step
-    processed = 0
     logger.info("Starting transcription...")
-    with open(os.devnull, "w") as devnull:
-        with tqdm(total=len(items), file=devnull) as pbar:
-            for batch in batched(items, BATCH_SIZE):
-                preds = model.predict_batch(
-                    # audio_path includes audio/ prefix
-                    [data_dir / item["audio_path"] for item in batch],
-                    batch_size=len(batch),
-                )
-                for item, pred in zip(batch, preds):
-                    phon_text = text_to_ipa(pred)
-                    predictions[item["utterance_id"]] = phon_text
-                this_batch_size = len(batch)
-                pbar.update(this_batch_size)
-                processed += this_batch_size
-                while processed >= next_log:
-                    logger.info(str(pbar))
-                    next_log += step
+    with torch.no_grad():
+        for item in tqdm(items):
+            input_values = torch.tensor(item['input_values']).unsqueeze(0)
+            # 予測（Logitsを出力）
+            logits = loaded_model(input_values).logits
+
+            # 3. デコード (ID配列 -> IPA文字列)
+            predicted_ids = torch.argmax(logits, dim=-1)
+            transcription = loaded_processor.batch_decode(predicted_ids)[0].replace('<unk>', ' ')
+
+            predictions[item["utterance_id"]] = transcription
 
     logger.success("Transcription complete.")
 
