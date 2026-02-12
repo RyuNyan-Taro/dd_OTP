@@ -202,4 +202,4 @@ pack-example EXAMPLE_NAME:
     @if [ -f "{{WORKING_DIR}}/submission/submission.zip" ]; then \
         just _confirm_submission_overwrite; \
     fi
-    bash examples/{{EXAMPLE_NAME}}/pack_submission.sh submission/
+    bash {{EXAMPLE_NAME}}/pack_submission.sh submission/
