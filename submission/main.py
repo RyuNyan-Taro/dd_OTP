@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 
+import librosa
 from loguru import logger
 import torch
 from tqdm import tqdm
@@ -58,11 +59,11 @@ def main():
     logger.info("Starting transcription...")
     with torch.no_grad():
         for item in tqdm(items):
-            input_values = torch.tensor(item['input_values']).unsqueeze(0)
-            # 予測（Logitsを出力）
+            input_values, _ = librosa.load(item["audio_path"], sr=16000)
+            input_values = torch.tensor(input_values).unsqueeze(0)
+
             logits = loaded_model(input_values).logits
 
-            # 3. デコード (ID配列 -> IPA文字列)
             predicted_ids = torch.argmax(logits, dim=-1)
             transcription = loaded_processor.batch_decode(predicted_ids)[0].replace('<unk>', ' ')
 
