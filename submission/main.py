@@ -33,11 +33,11 @@ def main():
     # Load model
     src_root = Path(__file__).parent.resolve()
 
-    output_dir = "./final_model_ipa"
+    model_path = src_root / "final_model_ipa"
 
     # load model and processer
-    loaded_processor = Wav2Vec2Processor.from_pretrained(output_dir)
-    loaded_model = Wav2Vec2ForCTC.from_pretrained(output_dir)
+    loaded_processor = Wav2Vec2Processor.from_pretrained(model_path)
+    loaded_model = Wav2Vec2ForCTC.from_pretrained(model_path)
 
     # Load manifest and process data
     data_dir = Path("data")
