@@ -52,8 +52,6 @@ def main():
 
     logger.info(f"Processing {len(items)} utterances from {manifest_path}")
 
-    step = max(1, len(items) // PROGRESS_STEP_DENOM)
-
     # Predict
     predictions = {}
     logger.info("Starting transcription...")
