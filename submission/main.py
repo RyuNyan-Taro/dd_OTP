@@ -57,7 +57,7 @@ def main():
     logger.info("Starting transcription...")
     with torch.no_grad():
         for item in tqdm(items):
-            input_values, _ = librosa.load(item["audio_path"], sr=16000)
+            input_values, _ = librosa.load(data_dir / item["audio_path"], sr=16000)
             input_values = torch.tensor(input_values).unsqueeze(0)
 
             logits = loaded_model(input_values).logits
