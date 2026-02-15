@@ -5,11 +5,11 @@ import numpy as np
 from transformers import Wav2Vec2Processor
 from dataclasses import dataclass
 from typing import Dict, List, Union
+import os
 
 from .. import calc, models, data
 
 def pre_train():
-    import os
     os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
 
     model, processor = models.get_model()
