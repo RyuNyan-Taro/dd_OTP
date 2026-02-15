@@ -1,10 +1,15 @@
-__all__ = ['prepare_dataset']
+__all__ = ['prepare_dataset', 'DataCollatorCTCWithPadding']
 
 
 import librosa
+from typing import Dict, List, Union
 import pandas as pd
+
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
+from transformers import Wav2Vec2Processor
+from dataclasses import dataclass
+import torch
 
 from .. import calc
 
@@ -45,3 +50,26 @@ def prepare_dataset(jsonl_path, processor):
     val_ds = Dataset.from_pandas(val_df).map(_manual_map).map(_tokenize_labels)
 
     return train_ds, val_ds
+
+
+@dataclass
+class DataCollatorCTCWithPadding:
+    processor: Wav2Vec2Processor
+    padding: Union[bool, str] = True
+
+    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+        input_features = [{"input_values": feature["input_values"]} for feature in features]
+
+        batch = self.processor.pad(input_features, padding=self.padding, return_tensors="pt")
+
+        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        labels_batch = self.processor.pad(
+            labels=label_features,
+            padding=self.padding,
+            return_tensors="pt"
+        )
+
+        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+        batch["labels"] = labels
+
+        return batch
