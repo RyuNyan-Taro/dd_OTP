@@ -6,6 +6,8 @@ import pandas as pd
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 
+from .. import calc
+
 
 def prepare_dataset(jsonl_path, processor):
 
@@ -18,7 +20,7 @@ def prepare_dataset(jsonl_path, processor):
 
     # 1. JSONLを読み込む
     df = pd.read_json(jsonl_path, lines=True)
-    df['normalized_text'] = df['phonetic_text'].apply(otp.calc.normalize_ipa)
+    df['normalized_text'] = df['phonetic_text'].apply(calc.normalize_ipa)
 
     df['audio_path'] = df['audio_path'].apply(lambda x: '../datas/' + '/' + x)
     df = df.rename(columns={'audio_path': 'audio'})
