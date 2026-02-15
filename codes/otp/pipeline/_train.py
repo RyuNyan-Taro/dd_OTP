@@ -2,74 +2,18 @@ __all__ = ['pre_train']
 
 
 import numpy as np
-import pandas as pd
-from datasets import Dataset
-from sklearn.model_selection import train_test_split
-from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2CTCTokenizer, Wav2Vec2Processor, Wav2Vec2ForCTC, Wav2Vec2Processor
+from transformers import Wav2Vec2Processor
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
-from .. import calc
+from .. import calc, models, data
 
 def pre_train():
     import os
     os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
 
-    model_id = "facebook/wav2vec2-lv-60-espeak-cv-ft"
-
-    # 1. 音の特徴を抽出する部分を読み込む
-    feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_id)
-
-    # 2. 文字（IPA）を扱う部分を読み込む
-    tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(model_id)
-
-    # 3. 両者を合体させて Processor を作る（ここが解決の鍵！）
-    processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
-
-    # 4. モデル本体を読み込む
-    model = Wav2Vec2ForCTC.from_pretrained(model_id)
-    model.to("cpu")
-
-    import librosa
-
-    def prepare_dataset(jsonl_path):
-
-        def _tokenize_labels(batch):
-            # processor を使ってテキストを ID 配列に変換
-            # ※ normalized_text をターゲット（labels）としてエンコードします
-            with processor.as_target_processor():
-                batch["labels"] = processor(batch["normalized_text"]).input_ids
-            return batch
-
-        # 1. JSONLを読み込む
-        df = pd.read_json(jsonl_path, lines=True)
-        df['normalized_text'] = df['phonetic_text'].apply(calc.normalize_ipa)
-
-        df['audio_path'] = df['audio_path'].apply(lambda x: '../datas/' + '/' + x)
-        df = df.rename(columns={'audio_path': 'audio'})
-
-        train_df, val_df = train_test_split(df, test_size=0.1, random_state=42)
-
-        # 2. 手動デコード用の関数
-        def _manual_map(example):
-            try:
-                # audio_path カラムにあるパスから直接読み込む
-                # sr=16000 を指定してリサンプリングも同時に行う
-                speech_array, _ = librosa.load(example["audio"], sr=16000)
-                example["input_values"] = speech_array
-                return example
-            except Exception as e:
-                # 読み込めないファイルがあった場合は None を入れて後で filter する
-                example["input_values"] = None
-                return example
-
-        # 3. Dataset作成（cast_column はしない！）
-        train_ds = Dataset.from_pandas(train_df).map(_manual_map).map(_tokenize_labels)
-        val_ds = Dataset.from_pandas(val_df).map(_manual_map).map(_tokenize_labels)
-
-        return train_ds, val_ds
-
-    train_dataset, val_dataset = prepare_dataset('../datas/train_phon_transcripts.jsonl')
+    model, processor = models.get_model()
+    train_dataset, val_dataset = data.prepare_dataset('../datas/train_phon_transcripts.jsonl', processor)
 
     print(f"Train dataset size: {len(train_dataset)}")
     print(f"Val dataset size: {len(val_dataset)}")
