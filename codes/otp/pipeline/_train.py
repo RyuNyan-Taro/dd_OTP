@@ -58,7 +58,7 @@ def _create_trainer(model, processor, train_dataset, val_dataset, data_collator)
         remove_unused_columns=False,
         use_mps_device=False,
         use_cpu=True,
-        per_device_train_batch_size=8,
+        per_device_train_batch_size=4,
         num_train_epochs=30,
         eval_strategy='steps',
         fp16=False,
