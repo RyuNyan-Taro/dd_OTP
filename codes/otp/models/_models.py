@@ -5,7 +5,7 @@ from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2CTCTokenizer, Wav2Vec
 
 
 def get_model(model_to="cpu"):
-    model_id = "facebook/wav2vec2-lv-60-espeak-cv-ft"
+    model_id = "facebook/w2v-bert-2."
 
     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_id)
 
