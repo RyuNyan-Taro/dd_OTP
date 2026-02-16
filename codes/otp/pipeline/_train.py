@@ -1,5 +1,6 @@
 __all__ = ['pre_train']
 
+import time
 
 import numpy as np
 import os
@@ -7,7 +8,7 @@ from transformers import TrainingArguments, Trainer
 
 from .. import calc, models, data
 
-def pre_train():
+def pre_train(model_prefix: str):
     os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
 
     model, processor = models.get_model()
@@ -22,7 +23,7 @@ def pre_train():
 
     trainer.train()
 
-    output_dir = "./final_model_ipa"
+    output_dir = f"./{model_prefix}_final_model" + time.strftime("_%Y%m%d_%H%M%S")
 
     trainer.save_model(output_dir)
     processor.save_pretrained(output_dir)
