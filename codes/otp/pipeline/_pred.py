@@ -1,4 +1,4 @@
-__all__ = ['pred_saved_model']
+__all__ = ['pred_saved_model', 'calc_cer_of_predicted']
 
 
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
@@ -63,3 +63,15 @@ def pred_saved_model(model_dir, dataset, result_prefix: str):
     # 5. 結果を保存（オプション）
     results_df.to_csv(f'./{result_prefix}_inference_results.csv', index=False)
     print(f"\n結果を ./{result_prefix}_inference_results.csv に保存しました。")
+
+
+def calc_cer_of_predicted(model_name: str):
+
+    for _data in ['train', 'val']:
+        _file_prefix = {'train': '', 'val': 'valid_'}[_data]
+        _result_path = f'./{model_name}_{_file_prefix}results.csv'
+        _df = pd.read_csv(_result_path)
+        _results = _df.loc[_df.isna().any(axis=1) == False,]
+
+        print(model_name, _data, len(_df), '->', len(_results))
+        print(calc.score_ipa_cer(_results['ground_truth'].to_list(), _results['predicted'].to_list()))
