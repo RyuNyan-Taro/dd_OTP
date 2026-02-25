@@ -42,7 +42,7 @@ def main():
 
     # Load model
     src_root = Path(__file__).parent.resolve()
-    model_path = src_root / "final_model_ipa"
+    model_path = src_root / "mms-1b-all_final_model_20260219_180653"
 
     # Load model and processor
     logger.info("Loading model and processor from {}", model_path)
