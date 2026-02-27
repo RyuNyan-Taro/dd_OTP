@@ -9,6 +9,6 @@ WORKING_DIR="$(pwd)"
 (
     cd $EXAMPLE_ROOT_DIR \
     && uvx rpzip -r $WORKING_DIR/$1/submission.zip \
-        final_model_ipa \
+        mms-1b-all_final_model_20260219_180653 \
         main.py
 )
