@@ -62,8 +62,15 @@ def prepare_dataset(jsonl_path, processor):
             return example
 
     # 3. Dataset作成（cast_column はしない！）
-    train_ds = Dataset.from_pandas(train_df).map(_manual_map).map(_tokenize_labels)
-    val_ds = Dataset.from_pandas(val_df).map(_manual_map).map(_tokenize_labels)
+    train_ds = Dataset.from_pandas(train_df).map(
+        _manual_map,
+        fn_kwargs={"is_train": True}
+    ).map(_tokenize_labels)
+
+    val_ds = Dataset.from_pandas(val_df).map(
+        _manual_map,
+        fn_kwargs={"is_train": False}
+    ).map(_tokenize_labels)
 
     return train_ds, val_ds
 
