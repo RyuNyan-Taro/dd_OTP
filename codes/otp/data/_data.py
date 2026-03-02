@@ -1,6 +1,7 @@
-__all__ = ['prepare_dataset', 'DataCollatorCTCWithPadding']
+__all__ = ['prepare_dataset', 'advanced_ipa_normalize', 'DataCollatorCTCWithPadding']
 
-
+import unicodedata
+import re
 import librosa
 from typing import Dict, List, Union
 import pandas as pd
@@ -50,6 +51,19 @@ def prepare_dataset(jsonl_path, processor):
     val_ds = Dataset.from_pandas(val_df).map(_manual_map).map(_tokenize_labels)
 
     return train_ds, val_ds
+
+
+def advanced_ipa_normalize(text):
+    if not isinstance(text, str):
+        return ""
+
+    text = unicodedata.normalize('NFC', text)
+
+    text = re.sub(r'(.)\1{2,}', r'\1\1', text)
+
+    text = text.replace(" ", "").strip()
+
+    return text
 
 
 @dataclass
