@@ -42,7 +42,7 @@ def prepare_dataset(jsonl_path, processor):
             # audio_path カラムにあるパスから直接読み込む
             # sr=16000 を指定してリサンプリングも同時に行う
             speech_array, _ = librosa.load(example["audio"], sr=16000)
-            speech_array, _ = librosa.effects.trim(speech_array, top_db=20)
+            speech_array, _ = librosa.effects.trim(speech_array, top_db=35)
 
             if is_train:
                 seed_val = int(hashlib.md5(example["utterance_id"].encode()).hexdigest(), 16) % (2 ** 32)
