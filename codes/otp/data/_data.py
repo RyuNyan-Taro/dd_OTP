@@ -34,11 +34,12 @@ def prepare_dataset(jsonl_path, processor):
     train_df, val_df = train_test_split(df, test_size=0.1, random_state=42)
 
     # 2. 手動デコード用の関数
-    def _manual_map(example):
+    def _manual_map(example, is_train=True):
         try:
             # audio_path カラムにあるパスから直接読み込む
             # sr=16000 を指定してリサンプリングも同時に行う
             speech_array, _ = librosa.load(example["audio"], sr=16000)
+            speech_array, _ = librosa.effects.trim(speech_array, top_db=20)
             example["input_values"] = speech_array
             return example
         except Exception as e:
