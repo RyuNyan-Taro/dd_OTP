@@ -53,7 +53,7 @@ def prepare_dataset(jsonl_path, processor):
                     noise = rng.normal(0, 0.002, speech_array.shape)
                     speech_array = speech_array + noise
 
-            example["input_values"] = speech_array
+            example["input_values"] = speech_array.astype(np.float32)
             return example
 
         except Exception as e:
