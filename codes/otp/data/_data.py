@@ -3,6 +3,7 @@ __all__ = ['prepare_dataset', 'advanced_ipa_normalize', 'DataCollatorCTCWithPadd
 import unicodedata
 import re
 import librosa
+import noisereduce as nr
 from typing import Dict, List, Union
 
 import numpy as np
@@ -41,17 +42,17 @@ def prepare_dataset(jsonl_path, processor):
         try:
             # audio_path カラムにあるパスから直接読み込む
             # sr=16000 を指定してリサンプリングも同時に行う
-            speech_array, _ = librosa.load(example["audio"], sr=16000)
-            speech_array, _ = librosa.effects.trim(speech_array, top_db=35)
+            speech_array, sr = librosa.load(example["audio"], sr=16000)
+            speech_array = nr.reduce_noise(y=speech_array, sr=sr, prop_decrease=0.8)
 
-            if is_train:
-                seed_val = int(hashlib.md5(example["utterance_id"].encode()).hexdigest(), 16) % (2 ** 32)
-                rng = np.random.default_rng(seed_val)
-
-                # Gaussian noise for the child random action
-                if rng.random() < 0.3:
-                    noise = rng.normal(0, 0.002, speech_array.shape)
-                    speech_array = speech_array + noise
+            # if is_train:
+            #     seed_val = int(hashlib.md5(example["utterance_id"].encode()).hexdigest(), 16) % (2 ** 32)
+            #     rng = np.random.default_rng(seed_val)
+            #
+            #     # Gaussian noise for the child random action
+            #     if rng.random() < 0.3:
+            #         noise = rng.normal(0, 0.002, speech_array.shape)
+            #         speech_array = speech_array + noise
 
             example["input_values"] = speech_array.astype(np.float32)
             return example
