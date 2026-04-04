@@ -42,7 +42,7 @@ def main():
 
     # Load model
     src_root = Path(__file__).parent.resolve()
-    model_path = src_root / "mms-1b-all_final_model_20260219_180653"
+    model_path = src_root / "wav2vec2-lv-60-espeak-cv-ft_mod_preprocess_final_model_20260303_230736"
 
     # Load model and processor
     logger.info("Loading model and processor from {}", model_path)
